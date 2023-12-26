@@ -1,33 +1,33 @@
 {
-  "used_cam": 0,
+  "used_cam": 1,
   "cameras" : [
     {
       "camera_name": "wide_cam",
-      "camera_file": "../videos/cam_wide.mkv",
+      "camera_file": "./videos/cam_wide.mkv",
       "camera_is_color": true,
-      "camera_w": 1920,
-      "camera_h": 1080,
-      "fps": 20,
-      "crop_footage": false,
-      "start_crop_w": 10,
-      "stop_crop_w": 50,
-      "start_crop_h": 10,
-      "stop_crop_h": 50,
-      "use_camera": true
+      "resize": true,
+      "camera_w": 1080,
+      "camera_h": 720,
+      "fps": 100,
+      "crop_footage": true,
+      "start_crop_w": 170,
+      "stop_crop_w": 1750,
+      "start_crop_h": 55,
+      "stop_crop_h": 1025
     },
     {
       "camera_name": "fish_cam",
-      "camera_file": "../videos/fish_cam.mkv",
-      "camera_is_color": true,
-      "camera_w": 1920,
-      "camera_h": 1080,
+      "camera_file": "./videos/fish_cam.mkv",
+      "camera_is_color": false,
+      "resize" : true,
+      "camera_w": 485,
+      "camera_h": 485,
       "fps": 20,
-      "crop_footage": false,
-      "start_crop_w": 10,
-      "stop_crop_w": 50,
-      "start_crop_h": 10,
-      "stop_crop_h": 50,
-      "use_camera": false
+      "crop_footage": true,
+      "start_crop_w": 475,
+      "stop_crop_w": 1445,
+      "start_crop_h": 55,
+      "stop_crop_h": 1025
     }
   ]
 }
