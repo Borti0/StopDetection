@@ -1,0 +1,33 @@
+{
+  "used_cam": 0,
+  "cameras" : [
+    {
+      "camera_name": "wide_cam",
+      "camera_file": "../videos/cam_wide.mkv",
+      "camera_is_color": true,
+      "camera_w": 1920,
+      "camera_h": 1080,
+      "fps": 20,
+      "crop_footage": false,
+      "start_crop_w": 10,
+      "stop_crop_w": 50,
+      "start_crop_h": 10,
+      "stop_crop_h": 50,
+      "use_camera": true
+    },
+    {
+      "camera_name": "fish_cam",
+      "camera_file": "../videos/fish_cam.mkv",
+      "camera_is_color": true,
+      "camera_w": 1920,
+      "camera_h": 1080,
+      "fps": 20,
+      "crop_footage": false,
+      "start_crop_w": 10,
+      "stop_crop_w": 50,
+      "start_crop_h": 10,
+      "stop_crop_h": 50,
+      "use_camera": false
+    }
+  ]
+}
