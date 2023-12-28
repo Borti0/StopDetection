@@ -1,5 +1,5 @@
 {
-  "used_cam": 0,
+  "used_cam": 1,
   "cameras" : [
     {
       "camera_name": "wide_cam",
@@ -19,11 +19,12 @@
     {
       "camera_name": "fish_cam",
       "camera_file": "./videos/fish_cam.mkv",
-      "camera_is_color": false,
+      "camera_is_color": true,
       "resize" : true,
       "camera_w": 485,
       "camera_h": 485,
-      "fps": 20,
+      "fps": 60,
+      "fps_tolerance_ms": 5.0,
       "crop_footage": true,
       "start_crop_w": 475,
       "stop_crop_w": 1445,
