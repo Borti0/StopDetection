@@ -35,6 +35,7 @@ class EmuCam:
         #fps of the emulated camera and fps period in ms
         self._fps = camera_config["fps"]
         self._fps_period = (1 / self._fps) * 1000
+        self._fps_tolerance_delay = camera_config["fps_tolerance_ms"]
 
         # is color or grayscale
         self._is_color = camera_config["camera_is_color"]
@@ -86,11 +87,13 @@ class EmuCam:
         return entry_point
 
     """
-    emulate_camera 
+    emulate_camera, function to emulate the camera read from the sensor using an video madia file,
+    this function crop the frame, resize it, convert it to b/w, and apply an delay to emulate
+    imager's fps capacity, all depending to json camera file
     """
     def emulate_camera(self):
 
-        # start_function_time = datetime.now()
+        start_function_time = datetime.now()
 
         read_ret, frame_initial = self._open_cv_entry.read()
         if read_ret is False:
@@ -105,7 +108,7 @@ class EmuCam:
             ]
 
         if self._is_color is False:
-             frame_initial = cv2.cvtColor(frame_initial, cv2.COLOR_BGR2GRAY)
+            frame_initial = cv2.cvtColor(frame_initial, cv2.COLOR_BGR2GRAY)
 
         if self._resize_flag is True:
             frame_initial = cv2.resize( frame_initial, (self._emu_cam_width, self._emu_cam_height), None, cv2.INTER_LINEAR )
@@ -116,11 +119,14 @@ class EmuCam:
             self._open_cv_entry.set(cv2.CAP_PROP_POS_FRAMES, 0)
             self.frame_count = 0
 
-        # elapsed_time = datetime.now() - start_function_time
-        # elapsed_time = elapsed_time.total_seconds() * 1000
-        # delay_time = self._fps - elapsed_time
 
-        # print(delay_time)
+        elapsed_time = datetime.now() - start_function_time
+        elapsed_time = elapsed_time.total_seconds() * 1000 + self._fps_tolerance_delay
+        delay_time = (self._fps_period - elapsed_time)
+
+        if delay_time >= 0:
+            #print(f"delay: {delay_time} ms | elapsed {elapsed_time} ms | fps_period {self._fps_period} ms")
+            time.sleep(delay_time/1000)
 
         return frame_initial
 

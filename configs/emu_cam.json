@@ -1,5 +1,5 @@
 {
-  "used_cam": 1,
+  "used_cam": 0,
   "cameras" : [
     {
       "camera_name": "wide_cam",
@@ -8,7 +8,8 @@
       "resize": true,
       "camera_w": 1080,
       "camera_h": 720,
-      "fps": 100,
+      "fps": 60,
+      "fps_tolerance_ms": 5.0,
       "crop_footage": true,
       "start_crop_w": 170,
       "stop_crop_w": 1750,
