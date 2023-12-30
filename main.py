@@ -1,3 +1,4 @@
+import math
 import threading
 import cv2
 import numpy as np
@@ -78,24 +79,27 @@ def thread_stop_sign_detect():
     local_frame = None
     new_frame = False
 
-    RX = numpy.ones((4, 16)) / 64
+    RX = numpy.ones((2, 20)) / 40
     Rx = numpy.ones((3, 25)) / 75
     Ry = numpy.transpose(Rx)
 
     Gx = numpy.array([
-        [-1, -2, -1],
+        [-1,  -2, -1],
         [0,   0,  0],
         [1,   2,  1]])
     Gy = Gx.transpose()
 
     name_window1 = "Original footage"
     name_window2 = "Filtered footage"
+    name_window3 = "cropp"
     cv2.namedWindow(name_window1)
     cv2.namedWindow(name_window2)
+    cv2.namedWindow(name_window3)
 
     matplotlib.pyplot.ion()
     figure = matplotlib.pyplot.figure()
-    ax = figure.add_subplot(111)
+    ax1 = figure.add_subplot(211)
+    ax2 = figure.add_subplot(212)
 
     while app_done is False:
         #reading frames from the buffer memory
@@ -106,10 +110,11 @@ def thread_stop_sign_detect():
         #executing alghoritms
         if new_frame is True:
             old_cols = local_frame.shape[1] / 2
+            #old_cols = old_cols + 0.25 * old_cols
             old_lines = local_frame.shape[0]
 
             local_frame = local_frame[
-                0:(old_lines-200), int(old_cols):
+                100:(old_lines-150), int(old_cols):
             ]
             cv2.imshow(name_window1, local_frame)
             cv2.waitKey(1)
@@ -117,8 +122,8 @@ def thread_stop_sign_detect():
             lines = local_frame.shape[0]
             colums = local_frame.shape[1]
 
-            frame_by = cv2.filter2D(src=local_frame, ddepth=-1, kernel=Ry)
-            frame_by_bx = cv2.filter2D(src=frame_by, ddepth=-1, kernel=RX)
+            frame_by = cv2.filter2D(src=local_frame, ddepth=-1, kernel=RX)
+            frame_by_bx = cv2.filter2D(src=frame_by, ddepth=-1, kernel=Ry)
 
             frame_by = frame_by_bx
 
@@ -129,31 +134,58 @@ def thread_stop_sign_detect():
 
             h, interv = numpy.histogram(Imby[:], 100)
             hc = numpy.cumsum(h)
-            procent = 0.99
+            procent = 0.985
             poz = numpy.where(hc >= procent * lines * colums)
             poz = poz[0][0]
             prag = h[poz]
 
             Py = np.zeros((lines, 1))
-            for i in range(0, lines, 1):
+            for i in range(200, lines-50, 1):
                 tmp = sum(Imby[i])
                 if tmp > prag:
                     Py[i] = tmp
 
             x = range(0, lines, 1)
             y = Py
-            line_of_graph, = ax.plot(x,y,'r-')
-            line_of_graph.set_ydata(Py)
+            line_of_graph1, = ax1.plot(x,y,'r-')
+            line_of_graph1.set_ydata(Py)
 
+            b,a = scipy.signal.butter(5, 0.05, 'low')
+            Pyn = scipy.signal.filtfilt(b, a, Py.transpose())
+
+            Pyn = Pyn.transpose()
+            line_of_graph2,  = ax2.plot(x,y, 'g-')
+            line_of_graph2.set_ydata(Pyn)
 
             figure.canvas.draw()
             figure.canvas.flush_events()
 
             #figure.clear()
             #time.sleep(0.01)
-            line_of_graph.set_ydata(0)
+            line_of_graph1.set_ydata(0)
+            line_of_graph2.set_ydata(0)
             cv2.imshow(name_window2, Imby)
             cv2.waitKey(1)
+
+            max_filtred_hist = Pyn.max()
+            poz_max_filred_hist = Pyn.argmax()
+
+            prag1=0
+            prag2=0
+            if sum(Py) > 10:
+                for i in range(poz_max_filred_hist - 1, 1, -1):
+                    if Pyn[i] < Pyn[i - 1]:
+                        prag1 = i
+                        break
+
+                for i in range(poz_max_filred_hist + 1, len(Pyn) - 1, 1):
+                    if Pyn[i] < Pyn[i + 1]:
+                        prag2 = i
+                        break
+                print(sum(Py))
+                local_frame = local_frame[prag1:prag2, :]
+                cv2.imshow(name_window3, local_frame)
+                cv2.waitKey(1)
 
         new_frame = False
 
