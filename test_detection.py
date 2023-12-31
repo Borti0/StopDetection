@@ -7,15 +7,18 @@ import matplotlib.pyplot
 if __name__ == "__main__":
 
     #open image
-    #cv2.namedWindow("original_img")
-    frame = cv2.imread("./videos/sample_wide_cam5.png")
+    cv2.namedWindow("original_img")
+    frame = cv2.imread("./videos/sample_wide_cam7.png")
+    cv2.imshow("original_img", frame)
+    cv2.waitKey(1)
+    time.sleep(20)
+
     old_cols = frame.shape[1]
     old_lines = frame.shape[0]
     frame = frame[
-        0:old_lines-100, int(old_cols/2):
+        0:old_lines-200, int(old_cols/2):old_cols-50
     ]
-    #cv2.imshow("original_img", frame)
-    #cv2.waitKey(1)
+
 
     #get nr of lines and columns
     dimensions = frame.shape
@@ -35,15 +38,15 @@ if __name__ == "__main__":
     #time.sleep(10)
 
     #rank filters
-    RX = numpy.ones((2, 9)) / 27
+    RX = numpy.ones((2, 9)) / 18
     Rx = numpy.ones((3, 35)) / 105
     Ry = numpy.transpose(Rx)
     #print(Rx)
     #print(Ry)
     frame_bx = cv2.filter2D(src=frame_bw, ddepth=-1, kernel=Rx)
     frame_by = cv2.filter2D(src=frame_bw, ddepth=-1, kernel=Ry)
-    #tmp_f = cv2.filter2D(src=frame_by, ddepth=-1, kernel=RX)
-    #frame_by = tmp_f
+    tmp_f = cv2.filter2D(src=frame_by, ddepth=-1, kernel=RX)
+    frame_by = tmp_f
     #cv2.imshow("bw", frame_bx)
     #cv2.waitKey(1)
 
@@ -83,7 +86,7 @@ if __name__ == "__main__":
     #print(h)
 
     Py = np.zeros((lines, 1))
-    for i in range(0, lines, 1):
+    for i in range(250, lines, 1):
         tmp = sum(Imby[i])
         if tmp > prag:
             Py[i] = tmp
@@ -122,7 +125,7 @@ if __name__ == "__main__":
 
     ## -----
     frame = frame[
-        prag1:prag2, :
+        prag1-50:prag2+50, :
     ]
     frame_bw = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
@@ -172,8 +175,10 @@ if __name__ == "__main__":
             break
     print(prag1, prag2)
 
+    if prag1 > 50:
+        prag1 -= 50
     frame = frame[
-        :, prag1:prag2
+        :, prag1:prag2+50
     ]
 
     cv2.imshow("bw", frame)
