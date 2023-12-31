@@ -4,7 +4,7 @@
     {
       "camera_name": "wide_cam",
       "camera_file": "./videos/cam_wide.mkv",
-      "camera_is_color": true,
+      "camera_is_color": false,
       "resize": true,
       "camera_w": 1080,
       "camera_h": 720,
@@ -13,13 +13,13 @@
       "crop_footage": true,
       "start_crop_w": 170,
       "stop_crop_w": 1750,
-      "start_crop_h": 55,
-      "stop_crop_h": 1025
+      "start_crop_h": 60,
+      "stop_crop_h": 1020
     },
     {
       "camera_name": "fish_cam",
       "camera_file": "./videos/fish_cam.mkv",
-      "camera_is_color": true,
+      "camera_is_color": false,
       "resize" : true,
       "camera_w": 485,
       "camera_h": 485,
@@ -28,8 +28,8 @@
       "crop_footage": true,
       "start_crop_w": 475,
       "stop_crop_w": 1445,
-      "start_crop_h": 55,
-      "stop_crop_h": 1025
+      "start_crop_h": 60,
+      "stop_crop_h": 1020
     }
   ]
 }
