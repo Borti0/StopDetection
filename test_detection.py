@@ -8,18 +8,22 @@ if __name__ == "__main__":
 
     #open image
     cv2.namedWindow("original_img")
-    frame = cv2.imread("./videos/sample_wide_cam7.png")
+    frame = cv2.imread("./videos/sample_wide_cam2.png")
+    old_cols = frame.shape[1]
+    old_lines = frame.shape[0]
+
+    print(frame.shape)
+
+    frame = frame[
+            0:old_lines - 200, int(old_cols / 2):old_cols - 50
+            ]
+    frame_cpy = frame
+    old_cols = frame.shape[1]
+    old_lines = frame.shape[0]
+
     cv2.imshow("original_img", frame)
     cv2.waitKey(1)
     time.sleep(20)
-
-    old_cols = frame.shape[1]
-    old_lines = frame.shape[0]
-    frame = frame[
-        0:old_lines-200, int(old_cols/2):old_cols-50
-    ]
-
-
     #get nr of lines and columns
     dimensions = frame.shape
     lines = dimensions[0] #height
@@ -123,10 +127,17 @@ if __name__ == "__main__":
             break
     print(prag1, prag2)
 
+    if prag1 > 50:
+        prag1 -= 50
+
+    if prag2 < len(Pyn) - 51:
+        prag2 += 50
+
     ## -----
     frame = frame[
-        prag1-50:prag2+50, :
+        prag1:prag2, :
     ]
+    frame_cpy = frame_cpy[prag1:prag2, :]
     frame_bw = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
     frame_bx = cv2.filter2D(src=frame_bw, ddepth=-1, kernel=Rx)
@@ -175,13 +186,17 @@ if __name__ == "__main__":
             break
     print(prag1, prag2)
 
+
     if prag1 > 50:
         prag1 -= 50
-    frame = frame[
-        :, prag1:prag2+50
-    ]
+    if prag2 < len(Pxn) - 51:
+        prag2 += 50
 
-    cv2.imshow("bw", frame)
+    frame = frame[
+        :, prag1:prag2
+    ]
+    frame_cpy = frame_cpy[:, prag1:prag2]
+    cv2.imshow("bw", frame_cpy)
     cv2.waitKey(60)
     time.sleep(5)
 

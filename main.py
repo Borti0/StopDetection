@@ -69,6 +69,132 @@ def save_image_jpg(name, frame_in):
     cv2.imwrite(path_string, frame_in)
     return
 
+def get_resolution(frame) -> list:
+    return [
+        frame.shape[0], frame.shape[1]
+    ]
+
+def crop_frame_all(frame, points: list):
+    if len(points) != 4:
+        print(f"ERROR: Crop list not good {crop_frame_all.__name__}")
+        return None
+    return frame[
+            points[0]:points[1],
+            points[2], points[3]
+            ]
+
+def crop_frame_by_line(frame, points: list):
+    if len(points) != 2:
+        print(f"ERROR: Crop list not good {crop_frame_by_line.__name__}")
+        return None
+    return frame[
+            points[0]:points[1],
+            :
+            ]
+
+def crop_frame_by_cols(frame, points: list):
+    if len(points) != 2:
+        print(f"ERROR: Crop list not good {crop_frame_by_cols.__name__}")
+        return None
+    return frame[
+           :,
+           points[0]:points[1]
+           ]
+
+def copy_frame(frame):
+    return frame.copy()
+
+def frame_get_channel(frame, channel: str):
+    channels = {
+        'blue':     0,
+        'green':    1,
+        'red':      2,
+    }
+
+    if channel not in channels:
+        print(f"ERROR: channel selection wrong {frame_get_channel.__name__}")
+        return None
+
+    channel_frame = frame.copy(frame)
+    channel_frame = channel[:, :, channels[channel]]
+    return blue_frame
+
+"""
+An function which trys to find an line window for object detection
+args: frame, [gx, interval hist, procent, line low exclution, line high exlution] 
+return praguri, histograma, histograma filtrata 
+"""
+def edge_detection_for_line_interval(frame, proces_args: list) -> list:
+    #guard for wrong arguments
+    if len(proces_args) != 4 and frame is None:
+        print(f"ERROR: {__name__} args wrong")
+        return None
+
+    #get resolution frame
+    frame_lines = frame.shape[0]
+    frame_cols = frame.shape[1]
+
+    #get arguments
+    Gx = proces_args[0]
+    Gy = Gx.transpose()
+
+    intv_hist = proces_args[1]
+    procent = proces_args[2]
+    lines_low_ex = proces_args[3]
+    lines_high_ex = proces_args[4]
+
+    #apply filters for edge detection
+    Imx = cv2.filter2D(src=frame, ddepth=-1, kernel=Gx)
+    Imy = cv2.filter2D(src=frame, ddepth=-1, kernel=Gy)
+
+    Imby = abs(Imx) + abs(Imy)
+
+    #calc histogram
+    h, interval = numpy.histogram(Imby[:], intv_hist)
+    hist_c = numpy.cumsum(h)
+    pozition = numpy.where( hc >= procent * frame_lines * frame_cols)
+    pozition = pozition[0][0]
+    prag = h[pozition]
+
+    Py = numpy.zeros((frame_lines, 1))
+
+    low_lines = 0 + lines_low_ex
+    high_lins = frame_lines - lines_high_ex
+
+    for index in range(low_lines, high_lins, 1):
+        tmp_sum = sum(Imby[index])
+        if tmp_sum > prag:
+            Py[index] = tmp_sum
+
+    #Create and aply filter
+    B, A = scipy.signal.butter(5, 0.05, 'low')
+    Pyn  = scipy.signal.filtfilt(B, A, Py.transpose())
+    Pyn  = Pyn.transpose()
+
+    #gurad for no object detected
+    if sum(Pyn) < 100:
+        return None
+
+    #Calculate Line indicators
+    Prag1 = 0
+    Prag2 = 0
+
+    max_hist_value = Pyn.max()
+    poz_max_hist = Pyn.argmax()
+
+    for index in range(poz_max_hist - 1, 1, -1):
+        if Pyn[index] < Pyn[index -1]:
+            Prag1 = index
+            break
+
+    for index in range(poz_max_hist +1 , len(Pyn), 1):
+        if Pyn[index] < Pyn[index + 1]:
+            Prag2 = index
+            break
+
+    return [Prag1, Prag2, Py, Pyn]
+
+
 def thread_stop_sign_detect():
     print("__ Start Stop Sing detection thread __")
 
@@ -79,14 +205,14 @@ def thread_stop_sign_detect():
     local_frame = None
     new_frame = False
 
-    RX = numpy.ones((2, 20)) / 40
-    Rx = numpy.ones((3, 25)) / 75
+    RX = numpy.ones((2, 9)) / 18
+    Rx = numpy.ones((4, 35)) / 140
     Ry = numpy.transpose(Rx)
 
     Gx = numpy.array([
-        [-1,  -2, -1],
-        [0,   0,  0],
-        [1,   2,  1]])
+        [-4,  2,  0],
+        [ 2,  0, -2],
+        [ 0, -2,  4]])
     Gy = Gx.transpose()
 
     name_window1 = "Original footage"
@@ -114,16 +240,19 @@ def thread_stop_sign_detect():
             old_lines = local_frame.shape[0]
 
             local_frame = local_frame[
-                100:(old_lines-150), int(old_cols):
+                100:(old_lines-150), int(old_cols)-50:
             ]
             cv2.imshow(name_window1, local_frame)
             cv2.waitKey(1)
 
+            local_frame = cv2.cvtColor(local_frame, cv2.COLOR_RGBA2RGB)
+            local_frame = cv2.cvtColor(local_frame, cv2.COLOR_RGB2GRAY)
+
             lines = local_frame.shape[0]
             colums = local_frame.shape[1]
 
-            frame_by = cv2.filter2D(src=local_frame, ddepth=-1, kernel=RX)
-            frame_by_bx = cv2.filter2D(src=frame_by, ddepth=-1, kernel=Ry)
+            frame_by = cv2.filter2D(src=local_frame, ddepth=-1, kernel=Ry)
+            frame_by_bx = cv2.filter2D(src=frame_by, ddepth=-1, kernel=RX)
 
             frame_by = frame_by_bx
 
@@ -140,7 +269,7 @@ def thread_stop_sign_detect():
             prag = h[poz]
 
             Py = np.zeros((lines, 1))
-            for i in range(200, lines-50, 1):
+            for i in range(200, lines, 1):
                 tmp = sum(Imby[i])
                 if tmp > prag:
                     Py[i] = tmp
@@ -182,10 +311,16 @@ def thread_stop_sign_detect():
                     if Pyn[i] < Pyn[i + 1]:
                         prag2 = i
                         break
-                print(sum(Py))
-                local_frame = local_frame[prag1:prag2, :]
-                cv2.imshow(name_window3, local_frame)
-                cv2.waitKey(1)
+                print(sum(Py), prag1, prag2, thread_stop_sign_detect.__name__)
+                if prag1 > 0 and prag2 > 0:
+                    if prag1 > 55:
+                        prag1 -= 50
+
+                    if prag2 < (lines - 55):
+                        prag2 += 50
+                    local_frame = local_frame[prag1:prag2, :]
+                    cv2.imshow(name_window3, local_frame)
+                    cv2.waitKey(1)
 
         new_frame = False
 
