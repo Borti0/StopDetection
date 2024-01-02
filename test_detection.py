@@ -180,7 +180,8 @@ if __name__ == "__main__":
             break
 
     prag2 = 0
-    for i in range(poz_max_hist + 1, len(Pyn) - 1, 1):
+    print(len(Pxn))
+    for i in range(poz_max_hist + 1, len(Pxn) - 1, 1):
         if Pxn[i] < Pxn[i + 1]:
             prag2 = i
             break
