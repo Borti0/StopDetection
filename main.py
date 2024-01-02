@@ -152,7 +152,7 @@ def edge_detection_for_line_interval(frame, proces_args: list) -> list:
     #calc histogram
     h, interval = numpy.histogram(Imby[:], intv_hist)
     hist_c = numpy.cumsum(h)
-    pozition = numpy.where( hc >= procent * frame_lines * frame_cols)
+    pozition = numpy.where( hist_c >= procent * frame_lines * frame_cols)
     pozition = pozition[0][0]
     prag = h[pozition]
 
@@ -187,7 +187,7 @@ def edge_detection_for_line_interval(frame, proces_args: list) -> list:
             Prag1 = index
             break
 
-    for index in range(poz_max_hist +1 , len(Pyn), 1):
+    for index in range(poz_max_hist + 1 , len(Pyn)-1, 1):
         if Pyn[index] < Pyn[index + 1]:
             Prag2 = index
             break
@@ -240,7 +240,7 @@ def thread_stop_sign_detect():
             old_lines = local_frame.shape[0]
 
             local_frame = local_frame[
-                100:(old_lines-150), int(old_cols)-50:
+                100:(old_lines-200), int(old_cols):int(old_cols)*2-100
             ]
             cv2.imshow(name_window1, local_frame)
             cv2.waitKey(1)
@@ -256,71 +256,86 @@ def thread_stop_sign_detect():
 
             frame_by = frame_by_bx
 
-            Imx = cv2.filter2D(src=frame_by, ddepth=-1, kernel=Gx)
-            Imy = cv2.filter2D(src=frame_by, ddepth=-1, kernel=Gy)
+            # Imx = cv2.filter2D(src=frame_by, ddepth=-1, kernel=Gx)
+            # Imy = cv2.filter2D(src=frame_by, ddepth=-1, kernel=Gy)
+            #
+            # Imby = abs(Imx) + abs(Imy)
+            #
+            # h, interv = numpy.histogram(Imby[:], 100)
+            # hc = numpy.cumsum(h)
+            # procent = 0.985
+            # poz = numpy.where(hc >= procent * lines * colums)
+            # poz = poz[0][0]
+            # prag = h[poz]
+            #
+            # Py = np.zeros((lines, 1))
+            # for i in range(200, lines, 1):
+            #     tmp = sum(Imby[i])
+            #     if tmp > prag:
+            #         Py[i] = tmp
+            #
+            # x = range(0, lines, 1)
+            # y = Py
+            # line_of_graph1, = ax1.plot(x,y,'r-')
+            # line_of_graph1.set_ydata(Py)
+            #
+            # b,a = scipy.signal.butter(5, 0.05, 'low')
+            # Pyn = scipy.signal.filtfilt(b, a, Py.transpose())
+            #
+            # Pyn = Pyn.transpose()
+            # line_of_graph2,  = ax2.plot(x,y, 'g-')
+            # line_of_graph2.set_ydata(Pyn)
+            #
+            # figure.canvas.draw()
+            # figure.canvas.flush_events()
+            #
+            # #figure.clear()
+            # #time.sleep(0.01)
+            # line_of_graph1.set_ydata(0)
+            # line_of_graph2.set_ydata(0)
+            # cv2.imshow(name_window2, Imby)
+            # cv2.waitKey(1)
+            #
+            # max_filtred_hist = Pyn.max()
+            # poz_max_filred_hist = Pyn.argmax()
+            #
+            # prag1=0
+            # prag2=0
+            # if sum(Py) > 10:
+            #     for i in range(poz_max_filred_hist - 1, 1, -1):
+            #         if Pyn[i] < Pyn[i - 1]:
+            #             prag1 = i
+            #             break
+            #
+            #     for i in range(poz_max_filred_hist + 1, len(Pyn) - 1, 1):
+            #         if Pyn[i] < Pyn[i + 1]:
+            #             prag2 = i
+            #             break
+            #     print(sum(Py), prag1, prag2, thread_stop_sign_detect.__name__)
+            #     if prag1 > 0 and prag2 > 0:
+            #         if prag1 > 55:
+            #             prag1 -= 50
+            #
+            #         if prag2 < (lines - 55):
+            #             prag2 += 50
+            #         local_frame = local_frame[prag1:prag2, :]
+            #         cv2.imshow(name_window3, local_frame)
+            #         cv2.waitKey(1)
 
-            Imby = abs(Imx) + abs(Imy)
-
-            h, interv = numpy.histogram(Imby[:], 100)
-            hc = numpy.cumsum(h)
-            procent = 0.985
-            poz = numpy.where(hc >= procent * lines * colums)
-            poz = poz[0][0]
-            prag = h[poz]
-
-            Py = np.zeros((lines, 1))
-            for i in range(200, lines, 1):
-                tmp = sum(Imby[i])
-                if tmp > prag:
-                    Py[i] = tmp
-
-            x = range(0, lines, 1)
-            y = Py
-            line_of_graph1, = ax1.plot(x,y,'r-')
-            line_of_graph1.set_ydata(Py)
-
-            b,a = scipy.signal.butter(5, 0.05, 'low')
-            Pyn = scipy.signal.filtfilt(b, a, Py.transpose())
-
-            Pyn = Pyn.transpose()
-            line_of_graph2,  = ax2.plot(x,y, 'g-')
-            line_of_graph2.set_ydata(Pyn)
-
-            figure.canvas.draw()
-            figure.canvas.flush_events()
-
-            #figure.clear()
-            #time.sleep(0.01)
-            line_of_graph1.set_ydata(0)
-            line_of_graph2.set_ydata(0)
-            cv2.imshow(name_window2, Imby)
+            arg = [Gx, 100, 0.985, 200, 0];
+            ret = edge_detection_for_line_interval(frame_by, arg)
+            if ret is None :
+                #print("None")
+                continue
+            print(ret[0], ret[1])
+            if ret[0] > ret[1]:
+                tmp = ret[0]
+                ret[0] = ret[1]
+                ret[1] = tmp
+                print(f"new prags {ret[0]} {ret[1]}")
+            local_frame = local_frame[ret[0]:ret[1], :]
+            cv2.imshow(name_window3, local_frame)
             cv2.waitKey(1)
-
-            max_filtred_hist = Pyn.max()
-            poz_max_filred_hist = Pyn.argmax()
-
-            prag1=0
-            prag2=0
-            if sum(Py) > 10:
-                for i in range(poz_max_filred_hist - 1, 1, -1):
-                    if Pyn[i] < Pyn[i - 1]:
-                        prag1 = i
-                        break
-
-                for i in range(poz_max_filred_hist + 1, len(Pyn) - 1, 1):
-                    if Pyn[i] < Pyn[i + 1]:
-                        prag2 = i
-                        break
-                print(sum(Py), prag1, prag2, thread_stop_sign_detect.__name__)
-                if prag1 > 0 and prag2 > 0:
-                    if prag1 > 55:
-                        prag1 -= 50
-
-                    if prag2 < (lines - 55):
-                        prag2 += 50
-                    local_frame = local_frame[prag1:prag2, :]
-                    cv2.imshow(name_window3, local_frame)
-                    cv2.waitKey(1)
 
         new_frame = False
 
