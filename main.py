@@ -16,7 +16,11 @@ import matplotlib.pyplot
 
 buffer_frame_list = DLListLimit(10, -2)
 buffer_strat1_2 = DLListLimit(10, -3)
+buffer_strat2_tes = DLListLimit(10, -3)
+frame_counter = 0
 app_done = False
+
+detected_signes = []
 
 """
     Sigint system signal capture function
@@ -293,8 +297,7 @@ def thread_stop_sign_detect():
     #define all global variables
     global app_done
     global buffer_frame_list
-    
-
+    global buffer_strat1_2
 
     local_frame = None
     new_frame = False
@@ -313,8 +316,8 @@ def thread_stop_sign_detect():
     name_window3 = "cropp"
     name_window4 = "second layer"
     cv2.namedWindow(name_window1)
-    # cv2.namedWindow(name_window3)
-    cv2.namedWindow(name_window4)
+    #cv2.namedWindow(name_window3)
+    #cv2.namedWindow(name_window4)
 
     # matplotlib.pyplot.ion()
     # figure = matplotlib.pyplot.figure()
@@ -323,17 +326,17 @@ def thread_stop_sign_detect():
     # ax3 = figure.add_subplot(223)
     # ax4 = figure.add_subplot(224)
 
-    frame_counter = 0
+    global frame_counter
 
     while app_done is False:
         #reading frames from the buffer memory
         if buffer_frame_list.is_half is True:
             local_frame = buffer_frame_list.read_data()
+            frame_counter+= 1
             new_frame = True
 
         #executing alghoritms
         if new_frame is True:
-            frame_counter += 1
             old_cols = local_frame.shape[1] / 2
             old_lines = local_frame.shape[0]
 
@@ -441,8 +444,202 @@ def thread_stop_sign_detect():
             # save_image_jpg(name, local_frame_cpy2)
             # frame_counter += 1
 
+
+            buffer_strat1_2.add_to_front(local_frame_cpy2)
+            #buffer_strat1_2.add_to_front(local_frame_cpy2)
+
+            #frame_counter += 1
             #------------------------- second layer -----------------------#
 
+            # s2_line = local_frame_cpy2.shape[0]
+            # s2_col  = local_frame_cpy2.shape[1]
+            #
+            # local_frame_cpy2 = cv2.resize(
+            #     local_frame_cpy2,
+            #     (s2_col + int(s2_col* 1.5), s2_line + int(s2_line * 1.5)),
+            #     cv2.INTER_CUBIC)
+            #
+            # frame_for_second_layer = copy_frame(local_frame_cpy2)
+            #
+            # frame_for_second_layer = cv2.cvtColor(frame_for_second_layer, cv2.COLOR_BGR2GRAY)
+            # frame_for_second_layer = ~frame_for_second_layer
+            #
+            # kernel = numpy.ones((5, 5)) / 30
+            # frame_for_second_layer = cv2.filter2D(src=frame_for_second_layer, ddepth=-1, kernel=kernel)
+            #
+            # kernel = numpy.array(
+            #     [
+            #         [-1, 0, -1],
+            #         [ 0, 7,  0],
+            #         [-1, 0, -1]
+            #     ]
+            # )
+            # frame_for_second_layer = cv2.filter2D(src=frame_for_second_layer, ddepth=-1, kernel=kernel)
+            #
+            # frame_for_second_layer = cv2.adaptiveThreshold(
+            #     frame_for_second_layer,
+            #     255,
+            #     cv2.ADAPTIVE_THRESH_MEAN_C,
+            #     cv2.THRESH_BINARY,
+            #     9,
+            #     5
+            # )
+            #
+            # frame_for_second_layer = cv2.medianBlur(frame_for_second_layer, 5)
+            # s2_line = frame_for_second_layer.shape[0]
+            # s2_col = frame_for_second_layer.shape[1]
+            #
+            # frame_for_second_layer = ~frame_for_second_layer
+            # frame_for_second_layer_cpy = copy_frame(frame_for_second_layer)
+            #
+            # kernel = numpy.ones((3,25))/75
+            # frame_for_second_layer_cpy = cv2.filter2D(frame_for_second_layer_cpy, ddepth=-1, kernel=kernel)
+            #
+            #
+            # px = numpy.zeros((s2_col, 1))
+            #
+            # for i in range(0, s2_col, 1):
+            #     px[i] = sum(frame_for_second_layer_cpy[:, i])
+            # px = px.transpose()
+            #
+            # b, a = scipy.signal.butter(5, 00.1, "low")
+            # pxf = scipy.signal.filtfilt(b, a, px)
+            # pxf = pxf.transpose()
+            #
+            # maxim = pxf.max() - 10
+            # #pxf = pxf.transpose()
+            #
+            # pxf[0][0] = maxim
+            # pxf[s2_col-1][0] = maxim
+            #
+            # #pxf = pxf.transpose()
+            #
+            # max_poz = pxf.argmax()
+            # maxim = pxf.max()
+            #
+            # prag1 = 0
+            # prag2 = 0
+            #
+            # for index in range(max_poz - 1, 1, -1):
+            #     if pxf[index] < int(maxim * 0.60):
+            #         prag1 = index
+            #         break
+            #
+            # tmp_len = len(pxf) - 1
+            # for index in range(max_poz + 1, tmp_len, 1):
+            #     if pxf[index] < int(maxim * 0.60):
+            #         prag2 = index
+            #         break
+            #
+            # if prag2 == 0:
+            #     prag2 = s2_col
+            #
+            # local_frame_cpy2 = local_frame_cpy2[:, prag1:prag2]
+            # frame_for_second_layer = frame_for_second_layer[:, prag1:prag2]
+            # frame_for_second_layer_cpy = copy_frame(frame_for_second_layer)
+            #
+            # s2_line = frame_for_second_layer_cpy.shape[0]
+            # s2_col = frame_for_second_layer_cpy.shape[1]
+            #
+            # kernel = kernel.transpose()
+            # frame_for_second_layer_cpy = cv2.filter2D(
+            #     src=frame_for_second_layer_cpy,
+            #     ddepth=-1,
+            #     kernel=kernel
+            # )
+            #
+            # py = numpy.zeros((s2_line, 1))
+            # #py = py.transpose()
+            #
+            # for index in range(0, s2_line-10, 1):
+            #     py[index] = sum(frame_for_second_layer_cpy[index, :])
+            #
+            # py = py.transpose()
+            # b, a = scipy.signal.butter(5, 0.025, "low")
+            # pyf = scipy.signal.filtfilt(b, a, py)
+            #
+            # maxim = pyf.max() - 10
+            # pyf[0][0] = maxim
+            # pyf[0][s2_line - 1] = maxim
+            #
+            # pyf = pyf.transpose()
+            #
+            # maxim = pyf.max()
+            # max_poz = pyf.argmax()
+            #
+            # prag1 = 0
+            # prag2 = 0
+            #
+            # for index in range(max_poz - 1, 11, -1):
+            #     if pyf[index] < int(maxim * 0.45) or pyf[index] < pyf[index - 10]:
+            #         prag1 = index
+            #         break
+            #
+            # tmp_len = len(pyf) - 11
+            #
+            # for index in range(max_poz + 1, tmp_len, 1):
+            #     if pyf[index] < int(maxim * 0.45) or pyf[index] < pyf[index + 10]:
+            #         prag2 = index
+            #         break
+            #
+            # if prag2 == 0:
+            #     prag2 = s2_line
+            #
+            # frame_for_second_layer = frame_for_second_layer[
+            #     prag1:prag2, :
+            # ]
+            # local_frame_cpy2 = local_frame_cpy2[prag1:prag2, :]
+            #
+            # #cv2.imshow(name_window4, frame_for_second_layer)
+            # #cv2.waitKey(1)
+            #
+            # my_cfg = r"--psm 6 --oem 3"
+            # text = pytesseract.image_to_string(frame_for_second_layer, config=my_cfg)
+            # tmp_len = len(text) - 4
+            # if tmp_len <= 0:
+            #     continue
+            # else:
+            #     text = text.upper()
+            #     for index_litera in range(0, tmp_len, 1):
+            #         tmp_cuvant = text[index_litera:index_litera+4]
+            #         if tmp_cuvant == "STOP":
+            #             print(f"STOP FINDE at frame counter {frame_counter}")
+
+            # name = "final_out/lala" + str(frame_counter)
+            # save_image_jpg(name, frame_for_second_layer)
+        # else:
+        #     time.sleep(0.001)
+        new_frame = False
+
+    if app_done is False:
+        app_done = True
+
+    print("CLOSE thread ai")
+    return
+
+def second_rank_filtering_thread():
+    print(f"__ Start  {second_rank_filtering_thread.__name__} __")
+
+    #define all global variables
+    global app_done
+    global buffer_strat1_2
+    global buffer_strat2_tes
+
+    local_frame = None
+    new_frame = False
+
+
+    global frame_counter
+
+    while app_done is False:
+        #reading frames from the buffer memory
+        if  buffer_strat1_2.is_half is True:
+            local_frame = buffer_strat1_2.read_data()
+            new_frame = True
+
+        #executing alghoritms
+        if new_frame is True:
+            local_frame_cpy2 = copy_frame(local_frame)
             s2_line = local_frame_cpy2.shape[0]
             s2_col  = local_frame_cpy2.shape[1]
 
@@ -494,7 +691,7 @@ def thread_stop_sign_detect():
                 px[i] = sum(frame_for_second_layer_cpy[:, i])
             px = px.transpose()
 
-            b, a = scipy.signal.butter(5, 00.1, "low")
+            b, a = scipy.signal.butter(5, 0.01, "low")
             pxf = scipy.signal.filtfilt(b, a, px)
             pxf = pxf.transpose()
 
@@ -570,7 +767,7 @@ def thread_stop_sign_detect():
             tmp_len = len(pyf) - 11
 
             for index in range(max_poz + 1, tmp_len, 1):
-                if pyf[index] < int(maxim * 0.45) or pyf[index] < pyf[index + 10]:
+                if pyf[index] < int(maxim * 0.35) or pyf[index] < pyf[index + 10]:
                     prag2 = index
                     break
 
@@ -582,11 +779,59 @@ def thread_stop_sign_detect():
             ]
             local_frame_cpy2 = local_frame_cpy2[prag1:prag2, :]
 
-            cv2.imshow(name_window4, frame_for_second_layer)
-            cv2.waitKey(1)
+            buffer_strat2_tes.add_to_front([frame_for_second_layer, local_frame])
+
+            # my_cfg = r"--psm 6 --oem 3"
+            # text = pytesseract.image_to_string(frame_for_second_layer, config=my_cfg)
+            # tmp_len = len(text) - 4
+            # if tmp_len <= 0:
+            #     continue
+            # else:
+            #     text = text.upper()
+            #     for index_litera in range(0, tmp_len, 1):
+            #         tmp_cuvant = text[index_litera:index_litera+4]
+            #         if tmp_cuvant == "STOP":
+            #             print(f"STOP FINDE at frame counter {frame_counter}")
+            #             detected_signes.append([local_frame, frame_counter])
+        else:
+            time.sleep(0.01)
+
+        new_frame = False
+
+    if app_done is False:
+        app_done = True
+
+    print("CLOSE thread second")
+    return
+
+def tes_thread():
+    print(f"__ Start  {tes_thread.__name__} __")
+
+    # define all global variables
+    global app_done
+    global buffer_strat2_tes
+
+    local_frame = None
+    new_frame = False
+
+    global frame_counter
+
+    name_window4 = "second layer"
+    cv2.namedWindow(name_window4)
+
+    while app_done is False:
+        # reading frames from the buffer memory
+        if buffer_strat2_tes.is_half is True:
+            local_frame = buffer_strat2_tes.read_data()
+            new_frame = True
+
+        # executing alghoritms
+        if new_frame is True:
+            save_f = local_frame[1]
+            test_frame = local_frame[0]
 
             my_cfg = r"--psm 6 --oem 3"
-            text = pytesseract.image_to_string(frame_for_second_layer, config=my_cfg)
+            text = pytesseract.image_to_string(test_frame, config=my_cfg)
             tmp_len = len(text) - 4
             if tmp_len <= 0:
                 continue
@@ -596,19 +841,19 @@ def thread_stop_sign_detect():
                     tmp_cuvant = text[index_litera:index_litera+4]
                     if tmp_cuvant == "STOP":
                         print(f"STOP FINDE at frame counter {frame_counter}")
+                        detected_signes.append([save_f, frame_counter])
+                        cv2.imshow(name_window4, save_f)
+                        cv2.waitKey(1)
 
-            # name = "final_out/lala" + str(frame_counter)
-            # save_image_jpg(name, frame_for_second_layer)
-
+        else:
+            time.sleep(0.001)
 
         new_frame = False
-
-        #time.sleep(0.001)
 
     if app_done is False:
         app_done = True
 
-    print("CLOSE thread ai")
+    print("CLOSE thread tesec")
     return
 
 if __name__ == "__main__":
@@ -618,11 +863,21 @@ if __name__ == "__main__":
     threads = []
     threads.append(threading.Thread(target=thread_camera_emulation))
     threads.append(threading.Thread(target=thread_stop_sign_detect))
+    threads.append(threading.Thread(target=second_rank_filtering_thread))
+    threads.append(threading.Thread(target=tes_thread))
 
     for th in threads:
         th.start()
 
     while app_done is False:
         time.sleep(1)
+
+
+
+    cv2.destroyAllWindows()
+
+    for i in range(0, len(detected_signes) - 1, 1):
+        name_file = "saved_signs/sign_" + str(detected_signes[i][1])
+        save_image_jpg(name_file, detected_signes[i][0])
 
     print(" ... Done app ...")
