@@ -62,7 +62,7 @@ class EmuCam:
         self.video_len = self._open_cv_entry.get(cv2.CAP_PROP_FRAME_COUNT)
 
         #set frame counter to 0 for reseting the file
-        self.frame_count = 0
+        self.frame_count = 1
 
 
     """
@@ -96,6 +96,7 @@ class EmuCam:
         start_function_time = datetime.now()
 
         read_ret, frame_initial = self._open_cv_entry.read()
+
         if read_ret is False:
             print(f"ERROR: Read media file {self._camera_file} problem")
             self._camera_status = False
