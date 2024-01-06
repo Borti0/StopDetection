@@ -1,7 +1,9 @@
 import math
 import threading
 import cv2
+import cv2.ft
 import numpy as np
+import pytesseract
 from utils.lists import DLListLimit
 from utils.emulated_camera import EmuCam
 import json
@@ -13,6 +15,7 @@ import scipy
 import matplotlib.pyplot
 
 buffer_frame_list = DLListLimit(10, -2)
+buffer_strat1_2 = DLListLimit(10, -3)
 app_done = False
 
 """
@@ -290,6 +293,8 @@ def thread_stop_sign_detect():
     #define all global variables
     global app_done
     global buffer_frame_list
+    
+
 
     local_frame = None
     new_frame = False
@@ -306,15 +311,17 @@ def thread_stop_sign_detect():
 
     name_window1 = "Original footage"
     name_window3 = "cropp"
+    name_window4 = "second layer"
     cv2.namedWindow(name_window1)
-    cv2.namedWindow(name_window3)
+    # cv2.namedWindow(name_window3)
+    cv2.namedWindow(name_window4)
 
-    matplotlib.pyplot.ion()
-    figure = matplotlib.pyplot.figure()
-    ax1 = figure.add_subplot(221)
-    ax2 = figure.add_subplot(222)
-    ax3 = figure.add_subplot(223)
-    ax4 = figure.add_subplot(224)
+    # matplotlib.pyplot.ion()
+    # figure = matplotlib.pyplot.figure()
+    # ax1 = figure.add_subplot(221)
+    # ax2 = figure.add_subplot(222)
+    # ax3 = figure.add_subplot(223)
+    # ax4 = figure.add_subplot(224)
 
     frame_counter = 0
 
@@ -326,6 +333,7 @@ def thread_stop_sign_detect():
 
         #executing alghoritms
         if new_frame is True:
+            frame_counter += 1
             old_cols = local_frame.shape[1] / 2
             old_lines = local_frame.shape[0]
 
@@ -361,7 +369,7 @@ def thread_stop_sign_detect():
                 ret[1] = ret[2]
                 ret[2] = tmp
                 #print(f"new line prag {ret[1]} {ret[2]}")
-            print(f"prag linii {ret[1]} {ret[2]}")
+            #print(f"prag linii {ret[1]} {ret[2]}")
             if ret[1] > 140:
                 ret[1] -= 70
             if ret[2] < len(ret[4]) - 140:
@@ -369,15 +377,15 @@ def thread_stop_sign_detect():
 
 
             #ret[3] = ret[3].transpose()
-            x = range(0, len(ret[3]), 1)
-            y = ret[3]
-            line_of_graph1, = ax1.plot(x,y, 'r-')
-            ax1.set_title("Line hist no filter")
-            line_of_graph1.set_ydata(ret[3])
-
-            line_of_graph2, = ax2.plot(x,y, 'g-')
-            ax2.set_title("filtered")
-            line_of_graph2.set_ydata(ret[4])
+            # x = range(0, len(ret[3]), 1)
+            # y = ret[3]
+            # line_of_graph1, = ax1.plot(x,y, 'r-')
+            # ax1.set_title("Line hist no filter")
+            # line_of_graph1.set_ydata(ret[3])
+            #
+            # line_of_graph2, = ax2.plot(x,y, 'g-')
+            # ax2.set_title("filtered")
+            # line_of_graph2.set_ydata(ret[4])
 
             local_frame = local_frame[ret[1]:ret[2], :]
             local_frame_cpy = local_frame_cpy[ret[1]:ret[2], :]
@@ -398,7 +406,7 @@ def thread_stop_sign_detect():
                 ret[1] = ret[2]
                 ret[2] = tmp
                 #print(f"new col prag {prag1} {prag2}")
-            print(f"prag col {ret[1]} {ret[2]}")
+            #print(f"prag col {ret[1]} {ret[2]}")
             if ret[1] > 140:
                 ret[1] -= 70
             if ret[2] < len(ret[4]) - 140:
@@ -408,15 +416,15 @@ def thread_stop_sign_detect():
                     :, ret[1]:ret[2]
                     ]
 
-            x = range(0, len(ret[3]), 1)
-            y = ret[3]
-            line_of_graph3, = ax3.plot(x, y, 'r-')
-            ax3.set_title("Px no filter")
-            line_of_graph3.set_ydata(ret[3])
-
-            line_of_graph4, = ax4.plot(x, ret[4], 'g-')
-            ax4.set_title("Px filter")
-            line_of_graph4.set_ydata(ret[4])
+            # x = range(0, len(ret[3]), 1)
+            # y = ret[3]
+            # line_of_graph3, = ax3.plot(x, y, 'r-')
+            # ax3.set_title("Px no filter")
+            # line_of_graph3.set_ydata(ret[3])
+            #
+            # line_of_graph4, = ax4.plot(x, ret[4], 'g-')
+            # ax4.set_title("Px filter")
+            # line_of_graph4.set_ydata(ret[4])
 
             #figure.canvas.draw()
             #figure.canvas.flush_events()
@@ -426,45 +434,172 @@ def thread_stop_sign_detect():
             #line_of_graph3.set_ydata(0)
             #line_of_graph4.set_ydata(0)
 
-            #local_frame = cv2.cvtColor(local_frame, cv2.COLOR_GRAY2RGB)
+
             # cv2.imshow(name_window3, local_frame_cpy2)
             # cv2.waitKey(1)
-            #
-            # l = local_frame_cpy2.shape[1] * 2
-            # c = local_frame_cpy2.shape[0] * 2
-            # local_frame_cpy2 = cv2.cvtColor(local_frame_cpy2, cv2.COLOR_RGB2GRAY)
-            # local_frame_cpy2 = cv2.resize(local_frame_cpy2, None, fx=3, fy=3)
-            # kernel = np.array([[0, -1, 0],
-            #                    [-1, 5, -1],
-            #                    [0, -1, 0]])
-            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
-            # kernel = numpy.ones((3,3)) / 27
-            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
-            # kernel = np.array([ [0, -1, 0],
-            #                     [-1, 6, -1],
-            #                     [0, -1, 0]])
-            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
-
-            # kernel = np.array([[0, -1, 0],
-            #                    [-1, 5, -1],
-            #                    [0, -1, 0]])
-            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
-
-
-
-            #
-            # for j in range(0, l, 1):
-            #     for i in range(0, c, 1):
-            #         if local_frame_cpy2[i][j] <= 250:
-            #             local_frame_cpy2[i][j] = 0
-            #             local_frame_cpy2[i][j] = 0
-            #             local_frame_cpy2[i][j] = 0
-
-            cv2.imshow(name_window3, local_frame_cpy2)
-            cv2.waitKey(1)
             # name = "lala" + str(frame_counter)
             # save_image_jpg(name, local_frame_cpy2)
             # frame_counter += 1
+
+            #------------------------- second layer -----------------------#
+
+            s2_line = local_frame_cpy2.shape[0]
+            s2_col  = local_frame_cpy2.shape[1]
+
+            local_frame_cpy2 = cv2.resize(
+                local_frame_cpy2,
+                (s2_col + int(s2_col* 1.5), s2_line + int(s2_line * 1.5)),
+                cv2.INTER_CUBIC)
+
+            frame_for_second_layer = copy_frame(local_frame_cpy2)
+
+            frame_for_second_layer = cv2.cvtColor(frame_for_second_layer, cv2.COLOR_BGR2GRAY)
+            frame_for_second_layer = ~frame_for_second_layer
+
+            kernel = numpy.ones((5, 5)) / 30
+            frame_for_second_layer = cv2.filter2D(src=frame_for_second_layer, ddepth=-1, kernel=kernel)
+
+            kernel = numpy.array(
+                [
+                    [-1, 0, -1],
+                    [ 0, 7,  0],
+                    [-1, 0, -1]
+                ]
+            )
+            frame_for_second_layer = cv2.filter2D(src=frame_for_second_layer, ddepth=-1, kernel=kernel)
+
+            frame_for_second_layer = cv2.adaptiveThreshold(
+                frame_for_second_layer,
+                255,
+                cv2.ADAPTIVE_THRESH_MEAN_C,
+                cv2.THRESH_BINARY,
+                9,
+                5
+            )
+
+            frame_for_second_layer = cv2.medianBlur(frame_for_second_layer, 5)
+            s2_line = frame_for_second_layer.shape[0]
+            s2_col = frame_for_second_layer.shape[1]
+
+            frame_for_second_layer = ~frame_for_second_layer
+            frame_for_second_layer_cpy = copy_frame(frame_for_second_layer)
+
+            kernel = numpy.ones((3,25))/75
+            frame_for_second_layer_cpy = cv2.filter2D(frame_for_second_layer_cpy, ddepth=-1, kernel=kernel)
+
+
+            px = numpy.zeros((s2_col, 1))
+
+            for i in range(0, s2_col, 1):
+                px[i] = sum(frame_for_second_layer_cpy[:, i])
+            px = px.transpose()
+
+            b, a = scipy.signal.butter(5, 00.1, "low")
+            pxf = scipy.signal.filtfilt(b, a, px)
+            pxf = pxf.transpose()
+
+            maxim = pxf.max() - 10
+            #pxf = pxf.transpose()
+
+            pxf[0][0] = maxim
+            pxf[s2_col-1][0] = maxim
+
+            #pxf = pxf.transpose()
+
+            max_poz = pxf.argmax()
+            maxim = pxf.max()
+
+            prag1 = 0
+            prag2 = 0
+
+            for index in range(max_poz - 1, 1, -1):
+                if pxf[index] < int(maxim * 0.60):
+                    prag1 = index
+                    break
+
+            tmp_len = len(pxf) - 1
+            for index in range(max_poz + 1, tmp_len, 1):
+                if pxf[index] < int(maxim * 0.60):
+                    prag2 = index
+                    break
+
+            if prag2 == 0:
+                prag2 = s2_col
+
+            local_frame_cpy2 = local_frame_cpy2[:, prag1:prag2]
+            frame_for_second_layer = frame_for_second_layer[:, prag1:prag2]
+            frame_for_second_layer_cpy = copy_frame(frame_for_second_layer)
+
+            s2_line = frame_for_second_layer_cpy.shape[0]
+            s2_col = frame_for_second_layer_cpy.shape[1]
+
+            kernel = kernel.transpose()
+            frame_for_second_layer_cpy = cv2.filter2D(
+                src=frame_for_second_layer_cpy,
+                ddepth=-1,
+                kernel=kernel
+            )
+
+            py = numpy.zeros((s2_line, 1))
+            #py = py.transpose()
+
+            for index in range(0, s2_line-10, 1):
+                py[index] = sum(frame_for_second_layer_cpy[index, :])
+
+            py = py.transpose()
+            b, a = scipy.signal.butter(5, 0.025, "low")
+            pyf = scipy.signal.filtfilt(b, a, py)
+
+            maxim = pyf.max() - 10
+            pyf[0][0] = maxim
+            pyf[0][s2_line - 1] = maxim
+
+            pyf = pyf.transpose()
+
+            maxim = pyf.max()
+            max_poz = pyf.argmax()
+
+            prag1 = 0
+            prag2 = 0
+
+            for index in range(max_poz - 1, 11, -1):
+                if pyf[index] < int(maxim * 0.45) or pyf[index] < pyf[index - 10]:
+                    prag1 = index
+                    break
+
+            tmp_len = len(pyf) - 11
+
+            for index in range(max_poz + 1, tmp_len, 1):
+                if pyf[index] < int(maxim * 0.45) or pyf[index] < pyf[index + 10]:
+                    prag2 = index
+                    break
+
+            if prag2 == 0:
+                prag2 = s2_line
+
+            frame_for_second_layer = frame_for_second_layer[
+                prag1:prag2, :
+            ]
+            local_frame_cpy2 = local_frame_cpy2[prag1:prag2, :]
+
+            cv2.imshow(name_window4, frame_for_second_layer)
+            cv2.waitKey(1)
+
+            my_cfg = r"--psm 6 --oem 3"
+            text = pytesseract.image_to_string(frame_for_second_layer, config=my_cfg)
+            tmp_len = len(text) - 4
+            if tmp_len <= 0:
+                continue
+            else:
+                text = text.upper()
+                for index_litera in range(0, tmp_len, 1):
+                    tmp_cuvant = text[index_litera:index_litera+4]
+                    if tmp_cuvant == "STOP":
+                        print(f"STOP FINDE at frame counter {frame_counter}")
+
+            # name = "final_out/lala" + str(frame_counter)
+            # save_image_jpg(name, frame_for_second_layer)
+
 
         new_frame = False
 
