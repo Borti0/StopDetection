@@ -268,7 +268,7 @@ def edge_detection_for_col_interval(frame, proces_args: list) -> list:
             prag1 = index
             break
 
-    for index in range(max_hist_poz + 1, 1, 1):
+    for index in range(max_hist_poz + 1, len(Pxn)-1, 1):
         if Pxn[index] < Pxn[index + 1]:
             prag2 = index
             break
@@ -281,7 +281,9 @@ adding show function thread for all needed windows with arguments to make it mor
 
 
 
-
+"""
+rewirite this function to be more cleare in the final project
+"""
 def thread_stop_sign_detect():
     print("__ Start Stop Sing detection thread __")
 
@@ -313,6 +315,8 @@ def thread_stop_sign_detect():
     ax2 = figure.add_subplot(222)
     ax3 = figure.add_subplot(223)
     ax4 = figure.add_subplot(224)
+
+    frame_counter = 0
 
     while app_done is False:
         #reading frames from the buffer memory
@@ -348,7 +352,7 @@ def thread_stop_sign_detect():
             arg = [Gx, 100, 0.985, 200, 100];
             ret = edge_detection_for_line_interval(frame_by, arg)
             if ret is None :
-                print("ERROR colons")
+                #print("ERROR colons")
                 continue
 
             #print(f"line prag {ret[1]} {ret[2]}")
@@ -357,12 +361,12 @@ def thread_stop_sign_detect():
                 ret[1] = ret[2]
                 ret[2] = tmp
                 #print(f"new line prag {ret[1]} {ret[2]}")
-
+            print(f"prag linii {ret[1]} {ret[2]}")
             if ret[1] > 140:
                 ret[1] -= 70
-            if ret[2] < len(ret[3]) - 140:
+            if ret[2] < len(ret[4]) - 140:
                 ret[2] += 70
-            #print(ret[2], ret[3])
+
 
             #ret[3] = ret[3].transpose()
             x = range(0, len(ret[3]), 1)
@@ -377,35 +381,16 @@ def thread_stop_sign_detect():
 
             local_frame = local_frame[ret[1]:ret[2], :]
             local_frame_cpy = local_frame_cpy[ret[1]:ret[2], :]
+            local_frame_cpy2 = copy_frame(local_frame_cpy)
 
             #----- cols seg
-            frame_bx = cv2.filter2D(src=local_frame, ddepth=-1, kernel=Rx)
+            local_frame_cpy = cv2.cvtColor(local_frame_cpy, cv2.COLOR_RGB2GRAY)
+            frame_bx = cv2.filter2D(src=local_frame_cpy, ddepth=-1, kernel=Rx)
 
-            # x = range(0, len(Px), 1)
-            # y = Px
-            # line_of_graph3, = ax3.plot(x, y, 'r-')
-            # ax3.set_title("Px no filter")
-            # line_of_graph3.set_ydata(Px)
-            #
-            # line_of_graph4, = ax4.plot(x, Pxn, 'g-')
-            # ax4.set_title("Px filter")
-            # line_of_graph4.set_ydata(Pxn)
-            #
-            # figure.canvas.draw()
-            # figure.canvas.flush_events()
-            #
-            # line_of_graph1.set_ydata(0)
-            # line_of_graph2.set_ydata(0)
-            # line_of_graph3.set_ydata(0)
-            # line_of_graph4.set_ydata(0)
-
-
-
-            #print(f"col prag {prag1} {prag2}")
             arg = [Gx, 0, 0]
             ret = edge_detection_for_col_interval(frame_bx, arg)
             if ret is None:
-                print("ERROR colons")
+                #print("ERROR colons")
                 continue
 
             if(ret[1] > ret[2]):
@@ -413,18 +398,73 @@ def thread_stop_sign_detect():
                 ret[1] = ret[2]
                 ret[2] = tmp
                 #print(f"new col prag {prag1} {prag2}")
-
+            print(f"prag col {ret[1]} {ret[2]}")
             if ret[1] > 140:
                 ret[1] -= 70
             if ret[2] < len(ret[4]) - 140:
                 ret[2] += 70
 
-            local_frame_cpy = local_frame_cpy[
+            local_frame_cpy2 = local_frame_cpy2[
                     :, ret[1]:ret[2]
                     ]
+
+            x = range(0, len(ret[3]), 1)
+            y = ret[3]
+            line_of_graph3, = ax3.plot(x, y, 'r-')
+            ax3.set_title("Px no filter")
+            line_of_graph3.set_ydata(ret[3])
+
+            line_of_graph4, = ax4.plot(x, ret[4], 'g-')
+            ax4.set_title("Px filter")
+            line_of_graph4.set_ydata(ret[4])
+
+            #figure.canvas.draw()
+            #figure.canvas.flush_events()
+
+            #line_of_graph1.set_ydata(0)
+            #line_of_graph2.set_ydata(0)
+            #line_of_graph3.set_ydata(0)
+            #line_of_graph4.set_ydata(0)
+
             #local_frame = cv2.cvtColor(local_frame, cv2.COLOR_GRAY2RGB)
-            cv2.imshow(name_window3, local_frame_cpy)
+            # cv2.imshow(name_window3, local_frame_cpy2)
+            # cv2.waitKey(1)
+            #
+            # l = local_frame_cpy2.shape[1] * 2
+            # c = local_frame_cpy2.shape[0] * 2
+            # local_frame_cpy2 = cv2.cvtColor(local_frame_cpy2, cv2.COLOR_RGB2GRAY)
+            # local_frame_cpy2 = cv2.resize(local_frame_cpy2, None, fx=3, fy=3)
+            # kernel = np.array([[0, -1, 0],
+            #                    [-1, 5, -1],
+            #                    [0, -1, 0]])
+            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
+            # kernel = numpy.ones((3,3)) / 27
+            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
+            # kernel = np.array([ [0, -1, 0],
+            #                     [-1, 6, -1],
+            #                     [0, -1, 0]])
+            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
+
+            # kernel = np.array([[0, -1, 0],
+            #                    [-1, 5, -1],
+            #                    [0, -1, 0]])
+            # local_frame_cpy2 = cv2.filter2D(src=local_frame_cpy2, ddepth=-1, kernel=kernel)
+
+
+
+            #
+            # for j in range(0, l, 1):
+            #     for i in range(0, c, 1):
+            #         if local_frame_cpy2[i][j] <= 250:
+            #             local_frame_cpy2[i][j] = 0
+            #             local_frame_cpy2[i][j] = 0
+            #             local_frame_cpy2[i][j] = 0
+
+            cv2.imshow(name_window3, local_frame_cpy2)
             cv2.waitKey(1)
+            # name = "lala" + str(frame_counter)
+            # save_image_jpg(name, local_frame_cpy2)
+            # frame_counter += 1
 
         new_frame = False
 
